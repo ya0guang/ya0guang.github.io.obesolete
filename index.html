@@ -378,8 +378,7 @@
                   <i class="fa fa-comment-o"></i>
                 </span>
                 <a href="/rfid-on-rpi/#comments" itemprop="discussionUrl">
-                
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="rfid-on-rpi/" itemprop="commentCount"></span>
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/rfid-on-rpi/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -542,8 +541,7 @@ Nested攻击简单地说，就是默认密码攻击。
                   <i class="fa fa-comment-o"></i>
                 </span>
                 <a href="/my-booklist/#comments" itemprop="discussionUrl">
-                
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="my-booklist/" itemprop="commentCount"></span>
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/my-booklist/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -724,8 +722,7 @@ Gray Hat
                   <i class="fa fa-comment-o"></i>
                 </span>
                 <a href="/lowcost-badUSB/#comments" itemprop="discussionUrl">
-                
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="lowcost-badUSB/" itemprop="commentCount"></span>
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/lowcost-badUSB/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -898,8 +895,7 @@ Gray Hat
                   <i class="fa fa-comment-o"></i>
                 </span>
                 <a href="/nethunter-8021x/#comments" itemprop="discussionUrl">
-                
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="nethunter-8021x/" itemprop="commentCount"></span>
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/nethunter-8021x/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1080,8 +1076,7 @@ sqlite3
                   <i class="fa fa-comment-o"></i>
                 </span>
                 <a href="/OP3-initial/#comments" itemprop="discussionUrl">
-                
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="OP3-initial/" itemprop="commentCount"></span>
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/OP3-initial/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1443,9 +1438,7 @@ Modules以下简单介绍下NH包含的功能与
 
   
 
-  
-    <script id="dsq-count-scr" src="https://ya0guang打哈欠的地方.disqus.com/count.js" async></script>
-  
+
 
   
 
@@ -1456,7 +1449,30 @@ Modules以下简单介绍下NH包含的功能与
 
 
 
-
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: false,
+        appId: 'appid9LmKWMrQGRXgVeQgJmHbjVCs-gzGzoHsz',
+        appKey: 'chf98fxdjK8JvbUSkD7EOitj',
+        placeholder: '求求你说点什么吧',
+        avatar:'mm',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
 
 
 
