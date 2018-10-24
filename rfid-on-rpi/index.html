@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/Terminal_180x180.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Terminal_32x32.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Terminal_16x16.png?v=6.4.2">
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="引言鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。 背景早在2007年，">
+<meta name="keywords" content="无线安全,硬件安全,RFID,Raspberry Pi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="低成本安全硬件（二）——RFID on PN532">
+<meta property="og:url" content="https://nonconformist.me/rfid-on-rpi/index.html">
+<meta property="og:site_name" content="ya0guang打哈欠的地方">
+<meta property="og:description" content="引言鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。 背景早在2007年，">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/mifare_memory_layout_thumb.png">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/proxmark3.jpg">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/ChameleonMini.jpg">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/acr122.jpg">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/pn532.jpg">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/rpi_interface.png">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/rpi_pn532.jpg">
+<meta property="og:image" content="https://nonconformist.me/rfid-on-rpi/nfc_list.PNG">
+<meta property="og:updated_time" content="2017-03-01T11:14:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="低成本安全硬件（二）——RFID on PN532">
+<meta name="twitter:description" content="引言鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。 背景早在2007年，">
+<meta name="twitter:image" content="https://nonconformist.me/rfid-on-rpi/mifare_memory_layout_thumb.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://nonconformist.me/rfid-on-rpi/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>低成本安全硬件（二）——RFID on PN532 | ya0guang打哈欠的地方</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ya0guang打哈欠的地方</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">/Hacker/Photographer/Geek/</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Kategorien</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-硬件安全" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://nonconformist.me/rfid-on-rpi/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ya0guang">
+      <meta itemprop="description" content="家里蹲青年也不要成为咸鱼">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ya0guang打哈欠的地方">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">低成本安全硬件（二）——RFID on PN532
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Post created: 2017-02-24 21:41:41" itemprop="dateCreated datePublished" datetime="2017-02-24T21:41:41+08:00">2017-02-24</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Updated at: 2017-03-01 19:14:30" itemprop="dateModified" datetime="2017-03-01T19:14:30+08:00">2017-03-01</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。</p>
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>早在2007年，Mifare M1 RFID卡片就被研究人员破解了出来。NXP公司在M1卡上使用了未公开的加密算法，然而密码学史上的种种教训都表明了“不公开”与“安全的”并没有什么联系。研究人员剖析了卡片的门电路结构从而逆向了加密的算法并发现了漏洞。M1卡的结构如图所示，其拥有16个扇区，每个扇区有4个块，每个扇区的第一块储存着扇区的密钥。<br><img src="/rfid-on-rpi/mifare_memory_layout_thumb.png" title="[RFID扇区结构]"></p>
+<p>目前针对Mifare卡片的攻击主要有三种方法：</p>
+<h2 id="Nested攻击"><a href="#Nested攻击" class="headerlink" title="Nested攻击"></a>Nested攻击</h2><p>简单地说，就是默认密码攻击。</p>
+<p>由于M1卡片有16个扇区，在绝大多数情况下16个扇区不一定会同时使用到。于是根据厂商在出厂时预设的密码可能碰撞出其中某一个扇区的密码。</p>
+<p>由于无源的M1卡每一次刷卡上电的时候，密钥交换采用的随机数都是“有规律”的，用已经碰撞出的某一扇区的密钥去试探其它扇区，在此时根据随机数的规律即可“套”出密码</p>
+<h2 id="Darkside攻击"><a href="#Darkside攻击" class="headerlink" title="Darkside攻击"></a>Darkside攻击</h2><p>简单地说就是暴力破解，即爆破出某一个扇区的密钥，之后再使用Nested攻击就能Dump出整张卡。</p>
+<p>而与通常意义上的暴力破解不同的是，由于M1卡片的认证机制，其会泄露部分认证信息，从而大大加快爆破的进度。</p>
+<h2 id="电波嗅探"><a href="#电波嗅探" class="headerlink" title="电波嗅探"></a>电波嗅探</h2><p>顾名思义，即在正常刷卡的时候嗅探卡片与读卡器交换的数据，从而逆向密码。</p>
+<p>这里可以参考2014年BlackHat的PDF：<br><a href="https://www.blackhat.com/docs/sp-14/materials/arsenal/sp-14-Almeida-Hacking-MIFARE-Classic-Cards-Slides.pdf" target="_blank" rel="noopener">https://www.blackhat.com/docs/sp-14/materials/arsenal/sp-14-Almeida-Hacking-MIFARE-Classic-Cards-Slides.pdf</a></p>
+<p>以及相关论文：<br><a href="http://www.cs.ru.nl/~flaviog/publications/Attack.MIFARE.pdf" target="_blank" rel="noopener">http://www.cs.ru.nl/~flaviog/publications/Attack.MIFARE.pdf</a></p>
+<h1 id="常见硬件介绍"><a href="#常见硬件介绍" class="headerlink" title="常见硬件介绍"></a>常见硬件介绍</h1><p>不同于之前BadUSB，在这方面可供我们选择的并不多。</p>
+<h2 id="旗舰级All-in-one的Proxmark3"><a href="#旗舰级All-in-one的Proxmark3" class="headerlink" title="旗舰级All-in-one的Proxmark3"></a>旗舰级All-in-one的Proxmark3</h2><img src="/rfid-on-rpi/proxmark3.jpg" title="[proxmark3]">
+<p>国外的开源硬件，由FPGA驱动。性能十分强大，集嗅探、读取、克隆于一体，玩得了高频卡艹得动低频卡。可以插电脑可以接电源。当然其价格也是十分的感人。不过某宝上近期出现了400多元的V2版本，也不知道是如何做到将价格放到那么低的————国外的V1版本也要300多，只不过人家的是美刀。</p>
+<p>伪装性：★★</p>
+<p>易用性：★★★★</p>
+<p>社区支持：★★★★</p>
+<h3 id="项目主页"><a href="#项目主页" class="headerlink" title="项目主页"></a>项目主页</h3><p><a href="http://www.proxmark.org" target="_blank" rel="noopener">http://www.proxmark.org</a></p>
+<h2 id="国外最近出现的ChameleonMini"><a href="#国外最近出现的ChameleonMini" class="headerlink" title="国外最近出现的ChameleonMini"></a>国外最近出现的ChameleonMini</h2><img src="/rfid-on-rpi/ChameleonMini.jpg" title="[ChameleonMini]">
+<p>如果不是因为要写此文特意去搜集了许多相关资料我还真不知道这玩意。这是德国的一个众筹项目，其和PM3差不多，拥有伪装卡的功能，从外形上看厚度与真正的卡片差不多，但是价格在国外比PM3要友好许多。</p>
+<p>伪装性：★★★★</p>
+<p>易用性：★★★</p>
+<p>社区支持：★★★</p>
+<h3 id="项目主页-1"><a href="#项目主页-1" class="headerlink" title="项目主页"></a>项目主页</h3><p><a href="https://github.com/emsec/ChameleonMini/wiki" target="_blank" rel="noopener">https://github.com/emsec/ChameleonMini/wiki</a></p>
+<h2 id="最流行的读卡器ACR122"><a href="#最流行的读卡器ACR122" class="headerlink" title="最流行的读卡器ACR122"></a>最流行的读卡器ACR122</h2><img src="/rfid-on-rpi/acr122.jpg" title="[acr122]">
+<p>反正就是很流行，大抵是因为网络上流传了非常强大的GUI改卡读卡复制卡软件吧！某宝价格一百多，但还是比我们今天所用到的硬件高出了那么三四倍。</p>
+<p>伪装性：★</p>
+<p>易用性：★★★★</p>
+<p>社区支持：★★</p>
+<h1 id="PN532"><a href="#PN532" class="headerlink" title="PN532"></a>PN532</h1><img src="/rfid-on-rpi/pn532.jpg" title="[笔者的PN532]">
+<p>根据上篇的经验，之前介绍的那坨东西肯定是不会用到的———因为穷啊！</p>
+<p>本篇的主角是PN532，我将其与树莓派连接使用。当然没有树莓派也没关系（买一个就完了），也可以使用UART转USB的接口连接电脑使用。接下来的篇幅将从树莓派的构建开始详细讲解其玩法。</p>
+<h1 id="系统搭建"><a href="#系统搭建" class="headerlink" title="系统搭建"></a>系统搭建</h1><p>以主机为windows系统为例，linux自行解决。</p>
+<h2 id="系统准备"><a href="#系统准备" class="headerlink" title="系统准备"></a>系统准备</h2><ul>
+<li>去<a href="https://www.raspberrypi.org/" target="_blank" rel="noopener">https://www.raspberrypi.org/</a>上下载最新的Raspbian Jessie 系统，笔者下载时的发布日是2017-02-16。</li>
+<li>使用win32diskimager将解压后的img镜像文件烧写到sd卡上</li>
+<li>注意新版本的Raspbian是默认不开启ssh的，所以我们需要在boot分区下创建一个名为ssh（<font color="red">小写！！！！</font>）的文件</li>
+<li>ssh进去，用户名pi，密码raspberry</li>
+</ul>
+<h2 id="系统配置"><a href="#系统配置" class="headerlink" title="系统配置"></a>系统配置</h2><p>执行sudo raspi-config进行配置.</p>
+<p>选择5-Interface Options，启用SPI、I2C，禁用Serial<br>选择7-Advanced Options，1-Expand Filesystem 扩展分区</p>
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>依赖：</p>
+<ul>
+<li>autoconf</li>
+<li>libusb-dev</li>
+<li>libtool</li>
+<li>libpcsclite-dev<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get upgrade</span><br><span class="line">sudo apt-get install autoconf libusb-dev libtool libpcsclite-dev</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="工具安装"><a href="#工具安装" class="headerlink" title="工具安装"></a>工具安装</h1><p>部分参考：<a href="https://firefart.at/post/how-to-crack-mifare-classic-cards/" target="_blank" rel="noopener">https://firefart.at/post/how-to-crack-mifare-classic-cards/</a></p>
+<h2 id="树莓派与PN532连接"><a href="#树莓派与PN532连接" class="headerlink" title="树莓派与PN532连接"></a>树莓派与PN532连接</h2><img src="/rfid-on-rpi/rpi_interface.png" title="[RPi3的GPIO引脚图]">
+<p>笔者用的是树莓派3，但是GPIO口的区别不大，与PN532的连接方式为：<br>04 <-> VCC<br>06 <-> GND<br>08 <-> RXD<br>10 <-> TXD</-></-></-></-></p>
+<img src="/rfid-on-rpi/rpi_pn532.jpg" title="[RPi3与PN532连接图]">
+<h2 id="libnfc"><a href="#libnfc" class="headerlink" title="libnfc"></a>libnfc</h2><p>顾名思义，nfc库。</p>
+<p>官方github:<a href="https://github.com/nfc-tools/libnfc" target="_blank" rel="noopener">https://github.com/nfc-tools/libnfc</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/nfc-tools/libnfc/releases/download/libnfc-1.7.1/libnfc-1.7.1.tar.bz2</span><br><span class="line">tar -jxvf libnfc-1.7.1.tar.bz2</span><br><span class="line">cd libnfc-1.7.1</span><br><span class="line">autoreconf -vis</span><br><span class="line">./configure --with-drivers=all --sysconfdir=/etc --prefix=/usr</span><br><span class="line">make</span><br><span class="line">sudo make install</span><br><span class="line">sudo mkdir /etc/nfc</span><br><span class="line">sudo mkdir /etc/nfc/devices.d</span><br></pre></td></tr></table></figure>
+<p>由于我们使用UART接口直接和PN532在树莓派上连接，还需要<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cp contrib/libnfc/pn532_uart_on_rpi.conf.sample /etc/nfc/devices.d/pn532_uart_on_rpi.conf</span><br></pre></td></tr></table></figure></p>
+<p>此时在不放卡与放卡的时候分别执行nfc-list，输出如下：<br><img src="/rfid-on-rpi/nfc_list.PNG" title="[RPi3的GPIO引脚图]"></p>
+<h2 id="mfoc"><a href="#mfoc" class="headerlink" title="mfoc"></a>mfoc</h2><p> mfoc即上述nested攻击的实现。</p>
+<p>官方github：<a href="https://github.com/nfc-tools/mfoc" target="_blank" rel="noopener">https://github.com/nfc-tools/mfoc</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/nfc-tools/mfoc.git</span><br><span class="line">cd mfoc/</span><br><span class="line">autoreconf -vis</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+<p>mfoc用法如下：<br><blockquote><p>Usage: mfoc [-h] [-k key] [-f file] … [-P probnum] [-T tolerance] [-O output]</p>
+<p>  h     print this help and exit<br>  k     try the specified key in addition to the default keys<br>  //指定key<br>  f     parses a file of keys to add in addition to the default keys<br>  //用文件为输入指定多个key<br>  P     number of probes per sector, instead of default of 20<br>  //每个扇区测试密钥数目<br>  T     nonce tolerance half-range, instead of default of 20<br>        (i.e., 40 for the total range, in both directions)<br>  O     file in which the card contents will be written (REQUIRED)<br>  //输出dump的文件<br>  D     file in which partial card info will be written in case PRNG is not vulnerable</p>
+<p>Example: mfoc -O mycard.mfd<br>Example: mfoc -k ffffeeeedddd -O mycard.mfd<br>Example: mfoc -f keys.txt -O mycard.mfd<br>Example: mfoc -P 50 -T 30 -O mycard.mfd</p>
+<p>This is mfoc version 0.10.7.<br>For more information, run: ‘man mfoc’.</p>
+<footer><strong>[mfoc -h]</strong></footer></blockquote></p>
+<p>简单地执行mfoc -O out.mfd，会dump出当前的卡片信息：<br><blockquote><p>mfoc -O out.mfd<br>Found Mifare Classic 1k tag<br>ISO/IEC 14443A (106 kbps) target:<br>    ATQA (SENS_RES): 00  04  </p>
+<ul>
+<li>UID size: single</li>
+<li>bit frame anticollision supported<pre><code> UID (NFCID1): 10  bc  79  ce  
+SAK (SEL_RES): 08  
+</code></pre></li>
+<li>Not compliant with ISO/IEC 14443-4</li>
+<li>Not compliant with ISO/IEC 18092</li>
+</ul>
+<p>Fingerprinting based on MIFARE type Identification Procedure:</p>
+<ul>
+<li>MIFARE Classic 1K</li>
+<li>MIFARE Plus (4 Byte UID or 4 Byte RID) 2K, Security level 1</li>
+<li>SmartMX with MIFARE 1K emulation<br>Other possible matches based on ATQA &amp; SAK values:</li>
+</ul>
+<p>Try to authenticate to all sectors with default keys…<br>Symbols: ‘.’ no key found, ‘/‘ A key found, ‘\’ B key found, ‘x’ both keys found<br>[Key: ffffffffffff] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: a0a1a2a3a4a5] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: d3f7d3f7d3f7] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 000000000000] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: b0b1b2b3b4b5] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 4d3a99c351dd] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 1a982c7e459a] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: aabbccddeeff] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 714c5c886e97] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 587ee5f9350f] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: a0478cc39091] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 533cb6c723f6] -&gt; [.xxxxxxxxxxxxxxx]<br>[Key: 8fd0a4f256e9] -&gt; [.xxxxxxxxxxxxxxx]</p>
+<p>Sector 00 - Unknown Key A               Unknown Key B<br>Sector 01 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 02 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 03 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 04 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 05 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 06 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 07 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 08 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 09 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 10 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 11 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 12 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 13 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 14 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff<br>Sector 15 - Found   Key A: ffffffffffff Found   Key B: ffffffffffff</p>
+<p>Using sector 01 as an exploit sector<br>Sector: 0, type A, probe 0, distance 12851 …..<br>Sector: 0, type A, probe 1, distance 12845 …..<br>Sector: 0, type A, probe 2, distance 12847 …..<br>Sector: 0, type A, probe 3, distance 12851 …..<br>Sector: 0, type A, probe 4, distance 12849 …..<br>  Found Key: A [11dc95b2bd87]<br>  Data read with Key A revealed Key B: [11dc95b2bd87] - checking Auth: OK<br>Auth with all sectors succeeded, dumping keys to a file!<br>Block 63, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 62, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 61, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 60, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 59, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 58, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 57, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 56, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 55, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 54, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 53, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 52, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 51, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 50, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 49, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 48, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 47, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 46, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 45, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 44, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 43, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 42, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 41, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 40, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 39, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 38, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 37, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 36, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 35, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 34, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 33, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 32, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 31, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 30, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 29, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 28, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 27, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 26, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 25, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 24, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 23, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 22, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 21, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 20, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 19, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 18, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 17, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 16, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 15, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 14, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 13, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 12, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 11, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 10, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 09, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 08, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 07, type A, key ffffffffffff :00  00  00  00  00  00  ff  07  80  69  ff  ff  ff  ff  ff  ff<br>Block 06, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 05, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 04, type A, key ffffffffffff :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 03, type A, key 11dc95b2bd87 :00  00  00  00  00  00  ff  07  80  69  11  dc  95  b2  bd  87<br>Block 02, type A, key 11dc95b2bd87 :00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00<br>Block 01, type A, key 11dc95b2bd87 :5e  dc  bf  dd  4b  fd  cf  ff  87  d4  00  00  00  00  00  00<br>Block 00, type A, key 11dc95b2bd87 :10  bc  79  ce  1b  08  04  00  62  63  64  65  66  67  68  69  </p>
+<footer><strong>[mfoc -O out.mfd]</strong></footer></blockquote></p>
+<h2 id="mfcuk"><a href="#mfcuk" class="headerlink" title="mfcuk"></a>mfcuk</h2><p>官方github:<a href="https://github.com/nfc-tools/mfcuk" target="_blank" rel="noopener">https://github.com/nfc-tools/mfcuk</a></p>
+<p>mfcuk(<font color="red">不是mfuck！！！</font>)即上述darkside攻击的实现。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/nfc-tools/mfcuk.git</span><br><span class="line">cd mfcuk</span><br><span class="line">autoreconf -vis</span><br><span class="line">./configure</span><br><span class="line">make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+<p>用法如下：<br><blockquote><p>mfcuk - 0.3.8<br>Mifare Classic DarkSide Key Recovery Tool - 0.3<br>by Andrei Costin, <a href="mailto:zveriu@gmail.com" target="_blank" rel="noopener">zveriu@gmail.com</a>, <a href="http://andreicostin.com" target="_blank" rel="noopener">http://andreicostin.com</a></p>
+<p>Usage:<br>-C - require explicit connection to the reader. Without this option, the connection is not made and recovery will not occur<br>-i mifare.dmp - load input mifare_classic_tag type dump<br>-I mifare_ext.dmp - load input extended dump specific to this tool, has several more fields on top of mifare_classic_tag type dump<br>-o mifare.dmp - output the resulting mifare_classic_tag dump to a given file<br>-O mifare_ext.dmp - output the resulting extended dump to a given file<br>-V sector[:A/B/any_other_alphanum[:fullkey]] - verify key for specified sector, -1 means all sectors<br>    After first semicolon key-type can specified: A verifies only keyA, B verifies only keyB, anything else verifies both keys<br>    After second semicolon full 12 hex-digits key can specified - this key will override any loaded dump key for the given sector(s) and key-type(s)<br>-R sector[:A/B/any_other_alphanum] - recover key for sector, -1 means all sectors.<br>    After first semicolon key-type can specified: A recovers only keyA, B recovers only keyB, anything else recovers both keys<br>-U UID - force specific UID. If a dump was loaded with -i, -U will overwrite the in the memory where dump was loaded<br>-M tagtype - force specific tagtype. 8 is 1K, 24 is 4K, 32 is DESFire<br>-D - for sectors and key-types marked for verification, in first place use default keys to verify (maybe you are lucky)<br>-d key - specifies additional full 12 hex-digits default key to be checked. Multiple -d options can be used for more additional keys<br>-s - milliseconds to sleep for SLEEP_AT_FIELD_OFF (Default: 10 ms)<br>-S - milliseconds to sleep for SLEEP_AFTER_FIELD_ON (Default: 50 ms)<br>-P hex_literals_separated - try to recover the key from a conversation sniffed with Proxmark3 (mifarecrack.c based). Accepts several options:<br>    Concatenated string in hex literal format of form uid:tag_chal:nr_enc:reader_resp:tag_resp<br>    Example -P 0x5c72325e:0x50829cd6:0xb8671f76:0xe00eefc9:0x4888964f would find key FFFFFFFFFFFF<br>-p proxmark3_full.log - tries to parse the log file on it’s own (mifarecrack.py based), get the values for option -P and invoke it<br>-F - tries to fingerprint the input dump (-i) against known cards’ data format<br>-v verbose_level - verbose level (default is O)</p>
+<p>Usage examples:<br>  Recove all keys from all sectors:<br>    mfcuk -C -R -1<br>  Recove the sector #0 key with 250 ms for all delays (delays could give more results):<br>    mfcuk -C -R 0 -s 250 -S 250</p>
+<footer><strong>[mfcuk]</strong></footer></blockquote><br>鉴于篇幅关系，这里不详细介绍了</p>
+<h2 id="写卡"><a href="#写卡" class="headerlink" title="写卡"></a>写卡</h2><p>直接使用nfc-mfclassic即可对Mifare classic系列卡片写入。主要有M1卡（S50）和4K卡（S70）。</p>
+<p>用法如下：<br><blockquote><p>nfc-mfclassic<br>Usage: nfc-mfclassic f|r|R|w|W a|b &lt;dump.mfd&gt; [&lt;keys.mfd&gt; [f]]<br>  f|r|R|w|W     - Perform format (f) or read from (r) or unlocked read from (R) or write to (w) or unlocked write to (W) card<br>                  <strong><em> format will reset all keys to FFFFFFFFFFFF and all data to 00 and all ACLs to default
+                  </em></strong> unlocked read does not require authentication and will reveal A and B keys<br>                  <strong><em> note that unlocked write will attempt to overwrite block 0 including UID
+                  </em></strong> unlocking only works with special Mifare 1K cards (Chinese clones)<br>  a|A|b|B       - Use A or B keys for action; Halt on errors (a|b) or tolerate errors (A|B)<br>  &lt;dump.mfd&gt;    - MiFare Dump (MFD) used to write (card to MFD) or (MFD to card)<br>  &lt;keys.mfd&gt;    - MiFare Dump (MFD) that contain the keys (optional)<br>  f             - Force using the keyfile even if UID does not match (optional)<br>Examples:</p>
+<p>  Read card to file, using key A:</p>
+<pre><code>nfc-mfclassic r a mycard.mfd
+</code></pre><p>  Write file to blank card, using key A:</p>
+<pre><code>nfc-mfclassic w a mycard.mfd
+</code></pre><p>  Write new data and/or keys to previously written card, using key A:</p>
+<pre><code>nfc-mfclassic w a newdata.mfd mycard.mfd
+</code></pre><p>  Format/wipe card (note two passes required to ensure writes for all ACL cases):</p>
+<pre><code>nfc-mfclassic f A dummy.mfd keyfile.mfd f
+nfc-mfclassic f B dummy.mfd keyfile.mfd f
+</code></pre><footer><strong>[nfc-mfclassic]</strong></footer></blockquote><br>这里要额外说明的是，M1卡的UID区域是只读不可写的，然而一些商家不符合规范（中国的牛B商家）吧0扇区的UID弄成了可写的，用W可以强行写入。</p>
+<p>A|B代表用密钥A或者B写入（均可），这里牵扯到Mifare协议的东西，读者可以自行查阅相关资料。</p>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>本文所含内容具有一定攻击性，切勿用于非法用途！弄出什么新闻也别找我负责！</p>
+<h2 id="关于PN532"><a href="#关于PN532" class="headerlink" title="关于PN532"></a>关于PN532</h2><p>由于查到PN532是支持Ultralight卡片的，但是笔者的PN532始终无法读取该类卡片，于是到elechouse的Github Issue中询问了关于PN532的问题————他们表面他们自己生产的PN532可以读几乎符合NFC协议的一切卡片，但是万恶的某宝在山寨的时候似乎阉割了一些功能，但是笔者测试1k和4k卡片都是可用的。</p>
+<h2 id="在手机上的奇技淫巧"><a href="#在手机上的奇技淫巧" class="headerlink" title="在手机上的奇技淫巧"></a>在手机上的奇技淫巧</h2><p>在带有NFC功能的Android手机上有一款名为Mifare Classic Tools的软件，可以进行读写卡，dump的操作————但是必须用对密钥哦！可以在树莓派上破解之后把密钥添加进去，然后就能用手机进行读写卡了。至于用途，你懂的。<br>GGPLY链接：<a href="https://play.google.com/store/apps/details?id=de.syss.MifareClassicTool&amp;hl=zh" target="_blank" rel="noopener">https://play.google.com/store/apps/details?id=de.syss.MifareClassicTool&amp;hl=zh</a>自备梯子</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>早餐加俩蛋</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="ya0guang WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="ya0guang Alipay">
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/无线安全/" rel="tag"># 无线安全</a>
+          
+            <a href="/tags/硬件安全/" rel="tag"># 硬件安全</a>
+          
+            <a href="/tags/RFID/" rel="tag"># RFID</a>
+          
+            <a href="/tags/Raspberry-Pi/" rel="tag"># Raspberry Pi</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/my-booklist/" rel="next" title="我的安全学习书单（持续更新）">
+                <i class="fa fa-chevron-left"></i> 我的安全学习书单（持续更新）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="ya0guang">
+            
+              <p class="site-author-name" itemprop="name">ya0guang</p>
+              <p class="site-description motion-element" itemprop="description">家里蹲青年也不要成为咸鱼</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">Tags</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Nested攻击"><span class="nav-number">2.1.</span> <span class="nav-text">Nested攻击</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Darkside攻击"><span class="nav-number">2.2.</span> <span class="nav-text">Darkside攻击</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#电波嗅探"><span class="nav-number">2.3.</span> <span class="nav-text">电波嗅探</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常见硬件介绍"><span class="nav-number">3.</span> <span class="nav-text">常见硬件介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#旗舰级All-in-one的Proxmark3"><span class="nav-number">3.1.</span> <span class="nav-text">旗舰级All-in-one的Proxmark3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目主页"><span class="nav-number">3.1.1.</span> <span class="nav-text">项目主页</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#国外最近出现的ChameleonMini"><span class="nav-number">3.2.</span> <span class="nav-text">国外最近出现的ChameleonMini</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目主页-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">项目主页</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最流行的读卡器ACR122"><span class="nav-number">3.3.</span> <span class="nav-text">最流行的读卡器ACR122</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PN532"><span class="nav-number">4.</span> <span class="nav-text">PN532</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#系统搭建"><span class="nav-number">5.</span> <span class="nav-text">系统搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统准备"><span class="nav-number">5.1.</span> <span class="nav-text">系统准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统配置"><span class="nav-number">5.2.</span> <span class="nav-text">系统配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装依赖"><span class="nav-number">5.3.</span> <span class="nav-text">安装依赖</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#工具安装"><span class="nav-number">6.</span> <span class="nav-text">工具安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#树莓派与PN532连接"><span class="nav-number">6.1.</span> <span class="nav-text">树莓派与PN532连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#libnfc"><span class="nav-number">6.2.</span> <span class="nav-text">libnfc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mfoc"><span class="nav-number">6.3.</span> <span class="nav-text">mfoc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mfcuk"><span class="nav-number">6.4.</span> <span class="nav-text">mfcuk</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写卡"><span class="nav-number">6.5.</span> <span class="nav-text">写卡</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结语"><span class="nav-number">7.</span> <span class="nav-text">结语</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#关于PN532"><span class="nav-number">7.1.</span> <span class="nav-text">关于PN532</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在手机上的奇技淫巧"><span class="nav-number">7.2.</span> <span class="nav-text">在手机上的奇技淫巧</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ya0guang</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" rel="external nofollow" href="https://theme-next.org">NexT.Pisces</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

